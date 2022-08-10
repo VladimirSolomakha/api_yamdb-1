@@ -1,3 +1,11 @@
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
+
+from Reviews.models import Comment, Review
+
+from .serializers import (CommentSerializer, ReviewSerializer)
+
+
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
@@ -89,3 +97,32 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        return Review.objects.filter(title_id=title_id)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        review_id = self.kwargs.get('review_id')
+        title_id = self.kwargs.get('title_id')
+        return Comment.objects.filter(
+            title_id=title_id, review_id=review_id
+        )
+
+    def perform_create(self, serializer):
+        review_id = self.kwargs.get('review_id')
+        serializer.save(
+            author=self.request.user,
+            review_id=get_object_or_404(Review, review_id=review_id)
+        )
