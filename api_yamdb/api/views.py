@@ -19,7 +19,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
-from .permissions import IsAdmin, OwnerCheckOrAdmin
+from .permissions import IsAdmin, OwnerCheckOrAdmin, IsAdminOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, RegisterDataSerializer,
                           ReviewSerializer, TitleSerializer,
@@ -184,13 +184,14 @@ class CategoryViewSet(mixins.CreateModelMixin,
                     viewsets.GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdmin,)
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
     def destroy(self, request, *args, **kwargs):
-        instance = get_object_or_404(queryset=self.queryset,slug=kwargs.get('pk'))
+        #instance = get_object_or_404_rest(queryset=self.queryset,slug=kwargs.get('pk'))
+        instance = get_object_or_404(self.queryset,slug=kwargs.get('pk'))
         instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -202,6 +203,7 @@ class GenreViewSet(CategoryViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
+    permission_classes = (IsAdminOrReadOnly,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
