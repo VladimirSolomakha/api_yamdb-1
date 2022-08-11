@@ -1,11 +1,10 @@
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from django.core.exceptions import ValidationError
 from rest_framework.validators import UniqueValidator
-from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
-
-from reviews.models import User
+from reviews.models import (Category, Comment, Genre, GenreTitle, Review,
+                            Title, User)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -64,7 +63,7 @@ class TokenSerializer(serializers.Serializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
-    title = SlugRelatedField(slug_field='description', read_only=True)
+    title = SlugRelatedField(slug_field='name', read_only=True)
 
     class Meta:
         fields = '__all__'
@@ -89,7 +88,17 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = '__all__'
+        model = Review
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = SlugRelatedField(slug_field='username', read_only=True)
+    review = serializers.SlugRelatedField(slug_field='text', read_only=True)
+
+    class Meta:
+        fields = '__all__'
         model = Comment
+
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -104,8 +113,16 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    category = SlugRelatedField(slug_field='slug', queryset=Category.objects.all())
-    genre = SlugRelatedField(slug_field='slug', queryset=Genre.objects.all(), many=True)
+    category = SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+    genre = SlugRelatedField(
+        slug_field='slug',
+        queryset=Genre.objects.all(),
+        many=True
+    )
+
 
     class Meta:
         model = Title
