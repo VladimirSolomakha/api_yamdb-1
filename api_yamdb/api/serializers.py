@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from django.core.exceptions import ValidationError
 from rest_framework.validators import UniqueValidator
-from reviews.models import Comment, Review, Title
+from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
 
 from reviews.models import User
 
@@ -90,3 +90,41 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Comment
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        exclude = ['id']
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Genre
+        exclude = ['id']
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    category = SlugRelatedField(slug_field='slug', queryset=Category.objects.all())
+    genre = SlugRelatedField(slug_field='slug', queryset=Genre.objects.all(), many=True)
+
+    class Meta:
+        model = Title
+        fields = '__all__'
+
+    def create(self, validated_data):
+        genres = validated_data.pop('genre')
+        title = Title.objects.create(**validated_data)
+
+        for genre_data in genres:
+            GenreTitle.objects.create(
+                genre=genre_data, title=title)
+        return title
+
+
+class TitleSerializerView(serializers.ModelSerializer):
+    category = CategorySerializer()
+    genre = GenreSerializer(many=True)
+
+    class Meta:
+        model = Title
+        fields = '__all__'
