@@ -1,3 +1,4 @@
+from django.db.models import Count, F, Sum
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -141,7 +142,12 @@ class TitleSerializer(serializers.ModelSerializer):
 class TitleSerializerView(serializers.ModelSerializer):
     category = CategorySerializer()
     genre = GenreSerializer(many=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
         fields = '__all__'
+
+    def get_rating(self, obj):
+        return None
+        #return obj.review_set.aggregate(Sum('score'))
