@@ -1,9 +1,10 @@
-from django.db.models import Count, F, Sum
 from django.core.exceptions import ValidationError
+from django.db.models import F, Sum
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
+
 from reviews.models import (Category, Comment, Genre, GenreTitle, Review,
                             Title, User)
 
@@ -75,7 +76,7 @@ class ReviewSerializer(serializers.ModelSerializer):
            and Review.objects.filter(title=title, author=author).exists()):
             raise ValidationError('Вы уже писали ревью')
         return data
-    
+
     class Meta:
         fields = '__all__'
         model = Review
@@ -163,5 +164,5 @@ class TitleSerializerView(serializers.ModelSerializer):
         if not sum:
             return None
         count = Review.objects.filter(title=obj).count()
-        return int(sum/count)
-        #return obj.review_set.aggregate(Sum('score'))
+        return int(sum / count)
+        # return obj.review_set.aggregate(Sum('score'))
