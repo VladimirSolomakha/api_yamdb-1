@@ -149,5 +149,10 @@ class TitleSerializerView(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_rating(self, obj):
-        return None
+        sum_dic = Review.objects.filter(title=obj).aggregate(Sum(F('score')))
+        sum = sum_dic.get('score__sum')
+        if not sum:
+            return None
+        count = Review.objects.filter(title=obj).count()
+        return int(sum/count)
         #return obj.review_set.aggregate(Sum('score'))
