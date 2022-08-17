@@ -1,4 +1,4 @@
-from django.db.models import Count, Sum
+from django.db.models import Avg
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
@@ -136,8 +136,7 @@ class GenreViewSet(GetPostDeleteViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.annotate(
-        rating=Sum('review__score') / Count('review'))
+    queryset = Title.objects.annotate(rating=Avg('review__score'))
     serializer_class = TitleSerializerGet
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
